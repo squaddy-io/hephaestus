@@ -5,7 +5,7 @@ import (
     "testing"
 )
 
-func Test_StructRandomizer(t *testing.T) {
+func Test_StructRandomizeFunc(t *testing.T) {
     type Role int
     const (
         WarriorRole Role = iota + 1

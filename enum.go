@@ -47,3 +47,46 @@ func EnumProbabilityRandomizeFunc[T any](s ...EnumProbability[T]) RandomizeFunc[
         return s[len(s)-1].Value, nil
     }
 }
+
+func EnumCyclicRandomizeFunc[T any](s ...T) RandomizeFunc[T] {
+    var i int
+
+    return func(ctx context.Context) (out T, err error) {
+        if len(s) == 0 {
+            err = fmt.Errorf("empty slice")
+            return
+        }
+
+        out = s[i]
+        i++
+
+        if len(s) == i {
+            i = 0
+        }
+
+        return
+    }
+}
+
+func EnumLimitedRandomizeFunc[T any](shuffle bool, s ...T) RandomizeFunc[T] {
+    if len(s) == 0 {
+        panic(fmt.Errorf("pool is empty"))
+    }
+
+    if shuffle {
+        rand.Shuffle(len(s), func(i, j int) {
+            s[i], s[j] = s[j], s[i]
+        })
+    }
+
+    return func(ctx context.Context) (T, error) {
+        var out T
+
+        if len(s) == 0 {
+            return out, fmt.Errorf("pool is empty")
+        }
+
+        out, s = s[0], s[1:]
+        return out, nil
+    }
+}

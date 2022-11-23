@@ -2,6 +2,7 @@ package hephaestus
 
 import (
     "context"
+    "strconv"
     "testing"
 )
 
@@ -48,5 +49,73 @@ func TestEnumProbabilityRandomizeFunc(t *testing.T) {
 
     if float64(m["str"])/float64(n) < 0.89 {
         t.Errorf("invalid probability")
+    }
+}
+
+func TestEnumLimitedRandomizeFunc(t *testing.T) {
+    var s []string
+    for i := 0; i < 100; i++ {
+        s = append(s, strconv.Itoa(i))
+    }
+
+    fn := EnumLimitedRandomizeFunc[string](false, s...)
+    for i := 0; i < 100; i++ {
+        v, err := fn(context.TODO())
+        if err != nil {
+            t.Errorf("pool shouldn't be drained")
+        }
+
+        if strconv.Itoa(i) != v {
+            t.Fatalf("shouldn't be shuffled")
+        }
+    }
+
+    _, err := fn(context.TODO())
+    if err == nil {
+        t.Errorf("pool should be drained")
+    }
+}
+
+func TestEnumLimitedRandomizeFunc_Shuffle(t *testing.T) {
+    var s []string
+    for i := 0; i < 100; i++ {
+        s = append(s, strconv.Itoa(i))
+    }
+
+    fn := EnumLimitedRandomizeFunc[string](true, s...)
+    var shuffled bool
+    for i := 0; i < 100; i++ {
+        v, err := fn(context.TODO())
+        if err != nil {
+            t.Errorf("pool shouldn't be drained")
+        }
+
+        if strconv.Itoa(i) != v {
+            shuffled = true
+        }
+    }
+
+    _, err := fn(context.TODO())
+    if err == nil {
+        t.Errorf("pool should be drained")
+    }
+
+    if !shuffled {
+        t.Errorf("should be shuffled")
+    }
+}
+
+func TestEnumCyclicRandomizeFunc(t *testing.T) {
+    fn := EnumCyclicRandomizeFunc[int](0, 1)
+
+    for i := 0; i < 100; i++ {
+        v, err := fn(context.TODO())
+        if err != nil {
+            t.Errorf("shouldn't return error: %s", err.Error())
+        }
+
+        if v != i%2 {
+            t.Fatalf("expected %d got %d", i%2, v)
+        }
     }
 }
