@@ -49,14 +49,13 @@ func EnumProbabilityRandomizeFunc[T any](s ...EnumProbability[T]) RandomizeFunc[
 }
 
 func EnumCyclicRandomizeFunc[T any](s ...T) RandomizeFunc[T] {
+    if len(s) == 0 {
+        panic(fmt.Errorf("empty slice"))
+    }
+
     var i int
 
     return func(ctx context.Context) (out T, err error) {
-        if len(s) == 0 {
-            err = fmt.Errorf("empty slice")
-            return
-        }
-
         out = s[i]
         i++
 
